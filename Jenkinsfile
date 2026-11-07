@@ -1,4 +1,4 @@
-
+ ```groovy
 pipeline {
     agent any
 
@@ -6,14 +6,14 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Starting Python Build'
-                bat 'python app.py'
+                bat '"C:\\Users\\siliv\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\python.exe" app.py'
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Running Python Tests'
-                bat 'python -m unittest test_app'
+                bat '"C:\\Users\\siliv\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\python.exe" -m unittest test_app'
             }
         }
 
@@ -24,3 +24,4 @@ pipeline {
         }
     }
 }
+```
