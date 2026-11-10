@@ -1,24 +1,26 @@
+
 pipeline {
     agent any
 
     stages {
+
         stage('Build') {
             steps {
-                echo 'Starting Python Build'
-                bat '"C:\\Users\\siliv\\AppData\\Local\\Programs\\Python\\Python312\\python.exe" app.py'
+                echo 'Checking Python Application'
+                bat '"C:\\Users\\siliv\\AppData\\Local\\Programs\\Python\\Python312\\python.exe" -m py_compile app.py'
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running Python Tests'
-                bat '"C:\\Users\\siliv\\AppData\\Local\\Programs\\Python\\Python312\\python.exe" -m unittest test_app'
+                echo 'Running Automated Tests'
+                bat '"C:\\Users\\siliv\\AppData\\Local\\Programs\\Python\\Python312\\python.exe" -m unittest test_app -v'
             }
         }
 
         stage('Success') {
             steps {
-                echo 'Build and Testing Completed Successfully'
+                echo 'Smart Parking Project Build Successful!'
             }
         }
     }

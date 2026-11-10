@@ -1,4 +1,10 @@
-parking_slots = 5
+
+from flask import Flask, render_template, request, redirect, url_for
+
+app = Flask(__name__)
+
+TOTAL_SLOTS = 5
+PARKING_RATE = 20
 parked_vehicles = {}
 
 
@@ -6,10 +12,13 @@ def park_vehicle(vehicle_number):
     if vehicle_number in parked_vehicles:
         return "Vehicle already parked"
 
-    if len(parked_vehicles) >= parking_slots:
+    if len(parked_vehicles) >= TOTAL_SLOTS:
         return "Parking Full"
 
-    parked_vehicles[vehicle_number] = 0
+    occupied = parked_vehicles.values()
+    slot = next(s for s in range(1, TOTAL_SLOTS + 1) if s not in occupied)
+
+    parked_vehicles[vehicle_number] = slot
     return "Vehicle Parked Successfully"
 
 
@@ -20,30 +29,71 @@ def remove_vehicle(vehicle_number, hours):
     if hours <= 0:
         raise ValueError("Hours must be greater than zero")
 
-    charge = hours * 20
+    charge = hours * PARKING_RATE
     del parked_vehicles[vehicle_number]
-
     return charge
 
 
 def available_slots():
-    return parking_slots - len(parked_vehicles)
+    return TOTAL_SLOTS - len(parked_vehicles)
 
 
-def main():
-    print("SMART PARKING MANAGEMENT SYSTEM")
-    print("--------------------------------")
+@app.route("/")
+def home():
+    return render_template(
+        "index.html",
+        total_slots=TOTAL_SLOTS,
+        available=available_slots(),
+        occupied=len(parked_vehicles),
+        vehicles=parked_vehicles,
+        message=None
+    )
 
-    print(park_vehicle("TS09AB1234"))
-    print(park_vehicle("TS09CD5678"))
 
-    print("Available Slots:", available_slots())
+@app.route("/park", methods=["POST"])
+def park():
+    vehicle_number = request.form.get("vehicle_number", "").upper().strip()
 
-    charge = remove_vehicle("TS09AB1234", 3)
+    if not vehicle_number:
+        message = "Please enter a vehicle number"
+    else:
+        message = park_vehicle(vehicle_number)
 
-    print("Parking Charge: Rs.", charge)
-    print("Available Slots:", available_slots())
+    return render_template(
+        "index.html",
+        total_slots=TOTAL_SLOTS,
+        available=available_slots(),
+        occupied=len(parked_vehicles),
+        vehicles=parked_vehicles,
+        message=message
+    )
+
+
+@app.route("/remove", methods=["POST"])
+def remove():
+    vehicle_number = request.form.get("vehicle_number", "").upper().strip()
+
+    try:
+        hours = int(request.form.get("hours", "0"))
+        result = remove_vehicle(vehicle_number, hours)
+
+        if isinstance(result, int):
+            message = f"Vehicle removed successfully! Parking Charge: Rs. {result}"
+        else:
+            message = result
+
+    except ValueError:
+        message = "Please enter valid parking hours greater than zero"
+
+    return render_template(
+        "index.html",
+        total_slots=TOTAL_SLOTS,
+        available=available_slots(),
+        occupied=len(parked_vehicles),
+        vehicles=parked_vehicles,
+        message=message
+    )
 
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True)
